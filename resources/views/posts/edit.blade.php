@@ -2,7 +2,7 @@
 
     <div class=
     "card p-10">
-        <h1 class="text-3xl mb-10">{{ __('create a new post') }}</h1>
+        <h1 class="text-3xl mb-10">{{ __('Edit Post') }}</h1>
         <div class="flex flex-col justify-center items-center w-full">
             @if ($errors->any())
                 <div class="w-full bg-red-50 text-red-700 p-5 mb-5">
@@ -15,13 +15,15 @@
             @endif
         </div>
 
-        <form action="/post/create" method="POST" class="w-full" enctype="multipart/form-data">
+        <form action="{{ route('post.update', $post->slug) }}" method="POST" class="w-full" enctype="multipart/form-data">
             @csrf
-            <x-create-edit>
+            @method('PUT')
+            <x-create-edit :post="$post">
                 
             </x-create-edit>
+
             <x-primary-button class="mt-4">
-                {{ __('create post') }}
+                {{ __('Update post') }}
             </x-primary-button>
         </form>
 

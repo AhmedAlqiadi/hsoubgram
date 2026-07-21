@@ -65,7 +65,16 @@ class User extends Authenticatable
     {
         return $this->belongsToMany(User::class, 'follows', 'user_id', 'following_user_id')->withPivot('confirmed');
     }
-    public function follower(){
-        return $this->belongsToMany(User::class,'follows','following_user_id', 'user_id')->withPivot('confirmed');
+    public function follower()
+    {
+        return $this->belongsToMany(User::class, 'follows', 'following_user_id', 'user_id')->withPivot('confirmed');
+    }
+    public function suggested_users()
+    {
+        // يرجع جميع النتائج اللتي لا تحقق الشرط
+        // يرجع جميع المستخدمين عاد المستخدم الحالي
+        // شوفيل عملها ترتب البيانات عشواين بعد احظرها من جت
+        // والتك ترجع 5 مستخدمين فقط من المستخدمين كامل
+        return User::whereNot('id', auth()->id())->get()->shuffle()->take(5);
     }
 }

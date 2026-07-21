@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Post;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 class PostController extends Controller
 {
@@ -13,7 +14,9 @@ class PostController extends Controller
      */
     public function index()
     {
-        //
+        $posts= Post::all();
+        $suggestedusers=auth()->user()->suggested_users();
+        return view('posts.index',['posts'=>$posts, 'suggestedusers'=>$suggestedusers]);
     }
 
     /**
@@ -56,7 +59,7 @@ class PostController extends Controller
      */
     public function edit(Post $post)
     {
-        //
+        return view('posts.edit', compact('post'));
     }
 
     /**
@@ -64,7 +67,16 @@ class PostController extends Controller
      */
     public function update(Request $request, Post $post)
     {
-        //
+        $data=$request->validate([
+            'description'=>'required',
+            'image' => ['nullable', 'mimes:jpeg,jpg,jfif']
+        ]);
+        if ($request->hasFile('image')) {
+            $image=$request->file('image')->store('posts','public');
+            $data['image']=$image;
+        }
+        $post->update($data);
+        return redirect()->back()->with('success', 'post update succefelly');
     }
 
     /**
@@ -72,6 +84,18 @@ class PostController extends Controller
      */
     public function destroy(Post $post)
     {
-        //
+        // dd($post);
+        if($post->image){
+            Storage::disk('public')->delete($post->image);
+        }
+        $post->delete();
+
+        return to_route('welcome');
+        // return redirect()->back()->with('success', 'تم حذف المنشور بنجاح');
+    }
+
+    public function explore(){
+        $posts=Post::whereRelation('owner','private_account','=',0)->whereNot('user_id',auth()->id())->simplepaginate(12);
+        return view('posts.explore',compact('posts'));
     }
 }

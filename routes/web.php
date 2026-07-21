@@ -1,16 +1,18 @@
 <?php
 
+use App\Http\Controllers\CommentController;
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', function () {
-    return view('welcome');
-})->name('welcome');
+
 
 Route::get('/dashboard', function () {
     return view('dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard');
+
+Route::get('/user/{user:username}/',[UserController::class,'index'])->name('user.profile');
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -22,7 +24,13 @@ Route::middleware('auth')->group(function () {
         Route::get('post/create', 'create')->name('create_post');
         Route::post('post/create','store')->name('store_post');
         Route::get('post/{post:slug}','show')->name('show_post');
+        Route::get('post/{post:slug}/edit','edit')->name('get_update_post');
+        Route::put('post/edit/{post:slug}','update')->name('post.update');
+        Route::delete('post/{post:slug}', 'destroy')->name('post.destroy');
+        Route::get('/','index')->name('home_page');
+        Route::get('/explore','explore')->name('explore');
     });
+    Route::post('post/{post:slug}/comment',[CommentController::class,'store'])->name('comment_store');
 
 });
 

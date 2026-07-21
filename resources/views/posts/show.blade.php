@@ -16,20 +16,39 @@
                     <div class="grow">
                         <a href="" class=" font-bold">{{ $post->owner->username }}</a>
                     </div>
+
+                    @if ($post->owner->id === auth()->id())
+                        <a href="{{ route('get_update_post', $post->slug) }}">
+                            <i class="bi bi-pencil-square"></i>
+                        </a>
+
+                        <form id="delete-post-form-{{ $post->id }}" action="{{ route('post.destroy', $post->slug) }}"
+                            class="inline" method="POST">
+                            @csrf
+                            @method('DELETE')
+
+                            <button type="button" onclick="confirmDelete({{ $post->id }})" class="text-red-600">
+                                <i class="bi bi-trash inline ml-2"></i>
+                            </button>
+                        </form>
+                    @endif
+
+
                 </div>
+
             </div>
 
             {{-- Middle --}}
 
             <div class="grow">
                 <div class="flex items-start px-5 py-2 gap-3">
-                    <img src="{{ $post->owner->image }}" alt=""
+                    <img src="{{ $post->owner->image }}" alt="{{ $post->owner->username }}"
                         class="ltr:mr-5 rtl:ml-5 h-10 w-10 rounded-full">
 
                     <div class="flex flex-col">
                         <div>
                             <a href="" class="font-bold">{{ $post->owner->username }}</a>
-                            <span class="inline">{{ $post->owner->description }}</span>
+                            <span class="inline">{{ $post->description }}</span>
                         </div>
                         <div class="mt-1 text-sm text-fray-400">
                             {{ $post->created_at->diffforHumans(null, true, true) }}
@@ -40,12 +59,81 @@
 
                 {{-- comment --}}
 
+                @foreach ($post->comments as $comment)
+                    <div class="flex items-start px-5 py-2 gap-2">
+                        <img src="{{ $comment->owner->image }}" alt=""
+                            class="h-10 w-10 rounded-full ltr:mr-5 rtl:ml-5">
 
+                        <div class="flex flex-col">
+                            <div>
+                                <a href=""
+                                    class="font-bold mr-2 inline-block">{{ $comment->owner->username }}</a>
+                                <span class="inline">{{ $comment->body }}</span>
+                            </div>
+                            <div class="mt-1 text-sm text-gray-400">
+                                {{ $comment->created_at->diffforHumans(null, true, true) }}
+                            </div>
 
+                        </div>
 
+                    </div>
+                @endforeach
 
 
             </div>
+
+            <div class="border-t p-5">
+                <form action="{{ route('comment_store', $post->slug) }}" method="POST">
+                    @csrf
+                    @if ($errors->has('body'))
+                        <div class="text-red-500 text-sm md-2">
+                            {{ $errors->first('body') }}
+                        </div>
+                    @endif
+
+                    <div class="flex flex-row">
+                        <textarea name="body" id="comment_body" placeholder="{{ __('Add a comment....') }}"
+                            class="h-7 grow resize-none overflow-hidden border-none bg-white text-blue-500" required></textarea>
+                        <button type="submit"
+                            class="ltr:ml-5 rtl:mr-5 border-none bg-white text-blue-500">{{ __('Comment') }}</button>
+                    </div>
+
+                </form>
+            </div>
+
         </div>
+
+
     </div>
 </x-app-layout>
+
+<script>
+    function confirmDelete(postId) {
+        Swal.fire({
+            title: 'هل أنت متأكد؟',
+            text: 'لن تتمكن من استعادة المنشور بعد الحذف!',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'نعم، احذف',
+            cancelButtonText: 'إلغاء'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                document.getElementById('delete-post-form-' + postId).submit();
+            }
+        });
+    }
+</script>
+
+@if(session('success'))
+<script>
+    Swal.fire({
+        icon: 'success',
+        title: 'تم',
+        text: '{{ session('success') }}',
+        timer: 2000,
+        showConfirmButton: false
+    });
+</script>
+@endif
